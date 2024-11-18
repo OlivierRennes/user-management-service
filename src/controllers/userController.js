@@ -81,3 +81,72 @@ exports.getUserProfile = async (req, res) => {
     }
 
 };
+
+// Update user profile
+
+exports.updateUserProfile = async (req, res) => {
+
+    const { username, email, password } = req.body;
+
+    const updates = {};
+
+
+    // Only update fields that are provided
+
+    if (username) updates.username = username;
+
+    if (email) updates.email = email;
+
+    if (password) {
+
+        // If a new password is provided, hash it before updating
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        updates.password = hashedPassword;
+
+    }
+
+
+    try {
+
+        const updatedUser = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true });
+
+        if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+        
+
+        // Exclude sensitive information (like password) from the response
+
+        const { password, ...userData } = updatedUser.toObject();
+
+        res.status(200).json(userData);
+
+    } catch (error) {
+
+        res.status(400).json({ error: 'Error updating user profile', details: error.message });
+
+    }
+
+};
+
+// Delete user profile
+
+exports.deleteUserProfile = async (req, res) => {
+
+    try {
+
+        const deletedUser = await User.findByIdAndDelete(req.user.id);
+
+        if (!deletedUser) return res.status(404).json({ error: 'User not found' });
+
+
+        res.status(200).json({ message: 'User deleted successfully' });
+
+    } catch (error) {
+
+        res.status(500).json({ error: 'Error deleting user profile', details: error.message });
+
+    }
+
+};
