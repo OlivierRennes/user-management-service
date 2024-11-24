@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .  # Use the current directory as the build context
+      dockerfile: Dockerfile  # Specify the Dockerfile to use
+    ports:
+      - "5000:5000"  # Map port 5000 on the host to port 5000 on the container
+    environment:
+      MONGO_URI: mongodb://172.20.0.2:27017/DB_User_management_service  # MongoDB connection string
+      JWT_SECRET: dd4f18b44939205a7318a150684da1237f640ea67251b8d92e0a87f0817c5820
+      PORT: 5000  # Port the app runs on
+    depends_on:
+      mongo:  # Ensure that the app waits for mongo to start
+          condition: service_healthy  # Wait for MongoDB to be healthy 
+    networks:
+      - network_APP_MongoDB_ONA3  # Attach to the custom network
+
+  mongo:
+    image: mongo:latest  # Use the latest MongoDB image
+    ports:
+      - "27017:27017"  # Map MongoDB port
+    volumes:
+      - mongo_data:/data/db  # Persist MongoDB data
+
+    networks:
+      - network_APP_MongoDB_ONA3  # Attach to the custom network
+    healthcheck:  # Add health check for MongoDB
+
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  #redis:
+  #  image: mongo:latest  # Use the latest MongoDB image
+  #  volumes:
+  #    - redis-data:/data
+
+volumes:
+  mongo_data: # Define a volume to persist MongoDB data
+#  redis-data:
+
+networks:
+  network_APP_MongoDB_ONA3:  # Define the custom network
+     driver: bridge
