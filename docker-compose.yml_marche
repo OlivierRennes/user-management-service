@@ -1,0 +1,32 @@
+services:
+  node-app:
+    build: .
+    image: node-app
+    environment:
+      MONGO_URI: mongodb://172.21.0.2:27017/DB_User_management_service  # MongoDB connection string
+      JWT_SECRET: dd4f18b44939205a7318a150684da1237f640ea67251b8d92e0a87f0817c5820
+      PORT: 5000  # Port the app runs on
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/src
+    networks:
+      - node-network
+
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata6:/data/db
+    networks:
+      - node-network
+
+volumes:
+  dbdata6:
+
+networks:
+  node-network:
+    driver: bridge
